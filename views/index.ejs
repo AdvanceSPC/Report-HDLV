@@ -1,144 +1,182 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestión de Llamadas</title>
-    <link rel="stylesheet" href="/assets/css/custom-styles.css" />
-    <link rel="stylesheet" href="/assets/css/styles.min.css" />
-    <link
-      rel="shortcut icon"
-      href="/assets/images/favicon.png"
-      type="image/x-icon"
-    />
-    <script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-    ></script>
-  </head>
-  <body class="bg-light">
-    <div class="container mt-4">
-      <div class="card p-4 shadow-sm">
-        <h2 class="mb-3 text-center">Gestión de Llamadas</h2>
-        <div class="card p-3 mb-3 bg-light">
-          <form method="GET" action="/" class="d-flex gap-2 align-items-center">
-            <label for="fechaDesde" class="fw-bold">Desde:</label>
-            <input
-              type="date"
-              id="fechaDesde"
-              name="fechaDesde"
-              class="form-control"
-              value="<%= fechaDesde || '' %>"
-              required
-            />
-            <label for="fechaHasta" class="fw-bold">Hasta:</label>
-            <input
-              type="date"
-              id="fechaHasta"
-              name="fechaHasta"
-              class="form-control"
-              value="<%= fechaHasta || '' %>"
-            />
-            <button type="submit" class="btn btn-primary">Filtrar</button>
 
-            <div class="dropdown ms-auto">
-              <button
-                class="btn btn-secondary dropdown-toggle"
-                type="button"
-                id="dropdownMenuButton"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                ⋮
-              </button>
-              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="/export/csv?<%= 'fechaDesde=' + (fechaDesde || '') + '&fechaHasta=' + (fechaHasta || '') %>"
-                    >Descargar CSV</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="/export/excel?<%= 'fechaDesde=' + (fechaDesde || '') + '&fechaHasta=' + (fechaHasta || '') %>"
-                    >Descargar Excel</a
-                  >
-                </li>
-              </ul>
-            </div>
-          </form>
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reportes</title>
+  <link rel="stylesheet" href="/assets/css/custom-styles.css" />
+  <link rel="stylesheet" href="/assets/css/styles.min.css" />
+  <link rel="shortcut icon" href="/assets/images/favicon.png" type="image/x-icon" />
+  <script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
 
-        <!-- Tabla -->
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped">
-            <thead class="bg-light">
-              <tr>
-                <th>Call ID</th>
-                <th>Agente</th>
-                <th>Tipo de Llamada</th>
-                <th>Género</th>
-                <th>Identificación</th>
-                <th>Nombre</th>
-                <th>Campaña</th>
-                <th>Tipo</th>
-                <th>Motivo</th>
-                <th>Submotivo</th>
-                <th>observaciones</th>
-                <th>Fecha Atención</th>
-                <th>Hora Atención</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% llamadas.forEach((llamada) => { %>
-              <tr>
-                <td><%= llamada.call_id %></td>
-                <td><%= llamada.agent %></td>
-                <td><%= llamada.tipo_llamada %></td>
-                <td><%= llamada.genero %></td>
-                <td><%= llamada.identificacion %></td>
-                <td><%= llamada.nombre_apellidos %></td>
-                <td><%= llamada.campana %></td>
-                <td><%= llamada.tipo %></td>
-                <td><%= llamada.motivo %></td>
-                <td><%= llamada.submotivo %></td>
-                <td><%= llamada.observaciones %></td>
-                <td><%= llamada.fecha %></td>
-                <td><%= llamada.hora %></td>
-              </tr>
-              <% }) %>
-            </tbody>
-          </table>
+<body class="bg-light">
+  <div class="container mt-4">
+    <div class="card p-4 shadow-sm">
+      <h2 class="mb-3 text-center">Gestión de Llamadas</h2>
+
+      <!-- Filtros -->
+      <div class="card p-3 mb-3 bg-light">
+        <form id="filtroForm" class="d-flex gap-2 align-items-center">
+          <label for="fechaDesde" class="fw-bold">Desde:</label>
+          <input type="date" id="fechaDesde" name="fechaDesde" class="form-control" value="<%= fechaDesde || '' %>"
+            required />
+
+          <label for="fechaHasta" class="fw-bold">Hasta:</label>
+          <input type="date" id="fechaHasta" name="fechaHasta" class="form-control" value="<%= fechaHasta || '' %>" />
+
+          <button type="submit" class="btn btn-primary">Filtrar</button>
+
+          <label for="registrosPorPagina" class="fw-bold ms-3">Mostrar:</label>
+          <select id="registrosPorPagina" class="form-select w-auto">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+
+          <div class="dropdown ms-auto">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              ⋮
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <li>
+                <a class="dropdown-item" href="#" id="descargarCSV">Descargar CSV</a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="#" id="descargarExcel">Descargar Excel</a>
+              </li>
+            </ul>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tabla -->
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead class="bg-light">
+            <tr>
+              <th>Call ID</th>
+              <th>Agente</th>
+              <th>Tipo de Llamada</th>
+              <th>Género</th>
+              <th>Identificación</th>
+              <th>Nombre</th>
+              <th>Campaña</th>
+              <th>Tipo</th>
+              <th>Motivo</th>
+              <th>Submotivo</th>
+              <th>Observaciones</th>
+              <th>Fecha Atención</th>
+              <th>Hora Atención</th>
+            </tr>
+          </thead>
+          <tbody id="tablaLlamadas">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Spinner de carga -->
+      <div id="loading" class="text-center my-3" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
         </div>
       </div>
+
+      <!-- Paginación -->
+      <nav>
+        <ul class="pagination justify-content-center" id="paginacion">
+        </ul>
+      </nav>
     </div>
-  </body>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const fechaDesde = document.getElementById("fechaDesde");
-      const fechaHasta = document.getElementById("fechaHasta");
-      function actualizarFechaHasta() {
-        if (fechaDesde.value) {
-          fechaHasta.removeAttribute("disabled");
-          fechaHasta.setAttribute("min", fechaDesde.value);
-        } else {
-          fechaHasta.value = ""; 
-          fechaHasta.setAttribute("disabled", "true");
-        }
+  </div>
+</body>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    let paginaActual = 1;
+    let limit = $("#registrosPorPagina").val();
+
+    function cargarLlamadas(pagina) {
+      $("#loading").show();
+      let fechaDesde = $("#fechaDesde").val();
+      let fechaHasta = $("#fechaHasta").val();
+      let url = `/api/llamadas?pagina=${pagina}&limit=${limit}`;
+
+      if (fechaDesde) {
+        url += `&fechaDesde=${fechaDesde}`;
       }
-      fechaDesde.addEventListener("change", actualizarFechaHasta);
-      actualizarFechaHasta();
-    });
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      if (window.location.search) {
-        window.history.replaceState({}, document.title, window.location.pathname);
+      if (fechaHasta) {
+        url += `&fechaHasta=${fechaHasta}`;
+      }
+
+      $.ajax({
+        url: url,
+        method: "GET",
+        success: function (data) {
+          $("#tablaLlamadas").html(data.html);
+          $("#paginacion").html(data.pagination);
+          $("#loading").hide();
+        },
+        error: function () {
+          alert("Error al cargar los datos.");
+          $("#loading").hide();
+        },
+      });
+    }
+    cargarLlamadas(paginaActual);
+
+    $(document).on("click", ".page-link", function (e) {
+      e.preventDefault();
+      let nuevaPagina = $(this).data("page");
+      if (nuevaPagina) {
+        paginaActual = nuevaPagina;
+        cargarLlamadas(paginaActual);
       }
     });
-  </script>
-  
+
+    $("#registrosPorPagina").on("change", function () {
+      limit = $(this).val();
+      paginaActual = 1;
+      cargarLlamadas(paginaActual);
+    });
+
+    $("#filtroForm").on("submit", function (e) {
+      e.preventDefault();
+      let fechaDesde = $("#fechaDesde").val();
+      let fechaHasta = $("#fechaHasta").val();
+      paginaActual = 1;
+      cargarLlamadas(paginaActual, fechaDesde, fechaHasta);
+    });
+
+    function actualizarLinksExport() {
+      let params = new URLSearchParams({
+        fechaDesde: $("#fechaDesde").val(),
+        fechaHasta: $("#fechaHasta").val(),
+      });
+      $("#descargarCSV").attr("href", "/export/csv?" + params.toString());
+      $("#descargarExcel").attr("href", "/export/excel?" + params.toString());
+    }
+
+    $("#fechaDesde, #fechaHasta").on("change", actualizarLinksExport);
+    actualizarLinksExport();
+
+    function actualizarFechaHasta() {
+      if ($("#fechaDesde").val()) {
+        $("#fechaHasta").removeAttr("disabled");
+        $("#fechaHasta").attr("min", $("#fechaDesde").val());
+      } else {
+        $("#fechaHasta").val("");
+        $("#fechaHasta").attr("disabled", "true");
+      }
+    }
+
+    $("#fechaDesde").on("change", actualizarFechaHasta);
+    actualizarFechaHasta();
+  });
+</script>
+
 </html>

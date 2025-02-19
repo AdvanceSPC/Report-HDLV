@@ -1,6 +1,5 @@
 const mysql = require("mysql2");
 const dotenv = require("dotenv");
-
 dotenv.config();
 
 const pool = mysql.createPool({
@@ -8,6 +7,10 @@ const pool = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  waitForConnections: true, 
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true, 
 });
 
 // Verificar conexión
@@ -19,5 +22,15 @@ pool.getConnection((err, connection) => {
     connection.release();
   }
 });
+
+// Mantener la conexión activa con pings cada 30 segundos
+setInterval(async () => {
+  try {
+    const [rows] = await pool.promise().query("SELECT 1");
+    console.log("✅ Ping a MySQL exitoso");
+  } catch (err) {
+    console.error("❌ Error en el ping a MySQL:", err.message);
+  }
+}, 30000);
 
 module.exports = pool.promise();
